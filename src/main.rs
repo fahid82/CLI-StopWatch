@@ -2,13 +2,24 @@ use std::io::{self, Write};
 use std::thread;
 use std::time::{Duration, Instant};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum StopWatch {
     Start,
     Stop,
     Lap,
     Exit,
-    Invalid,
+}
+
+impl StopWatch {
+    fn parse(input: &str) -> Option<Self> {
+        match input.trim().to_lowercase().as_str() {
+            "start" => Some(StopWatch::Start),
+            "stop" => Some(StopWatch::Stop),
+            "lap" => Some(StopWatch::Lap),
+            "exit" => Some(StopWatch::Exit),
+            _ => None,
+        }
+    }
 }
 
 fn main() {
@@ -22,59 +33,43 @@ fn main() {
 
         let mut input = String::new();
         match io::stdin().read_line(&mut input) {
-            Ok(_) => {
-                let command_str = input.trim().to_lowercase();
+            Ok(_) => match StopWatch::parse(&input) {
+                Some(StopWatch::Start) => {
+                    println!("StopWatch started");
+                    let start_time = Instant::now();
 
-                #[allow(unused_variables)]
-                let command = match command_str.as_str() {
-                    "start" => StopWatch::Start,
-                    "stop" => StopWatch::Stop,
-                    "lap" => StopWatch::Lap,
-                    "exit" => StopWatch::Exit,
-                    _ => StopWatch::Invalid,
-                };
+                    loop {
+                        let elapsed = start_time.elapsed();
 
-                match command {
-                    StopWatch::Start => {
-                        println!("StopWatch started");
-                        let start_time = Instant::now();
+                        print!(
+                            "\rElapsed: {:02}:{:02}.{:03}",
+                            elapsed.as_secs() / 60,
+                            elapsed.as_secs() % 60,
+                            elapsed.subsec_millis()
+                        );
 
-                        loop {
-                            let elapsed = start_time.elapsed();
-
-                            print!(
-                                "\rElapsed: {:02}:{:02}.{:03}",
-                                elapsed.as_secs() / 60,
-                                elapsed.as_secs() % 60,
-                                elapsed.subsec_millis()
-                            );
-
-                            io::stdout().flush().unwrap();
-                            thread::sleep(Duration::from_millis(50));
-                        }
-                    }
-
-                    StopWatch::Stop => {
-                        println!("StopWatch stopped");
-                        break;
-                    }
-
-                    StopWatch::Lap => {
-                        println!("Lap time");
-                        break;
-                    }
-
-                    StopWatch::Exit => {
-                        println!("Exiting StopWatch");
-                        break;
-                    }
-
-                    StopWatch::Invalid => {
-                        println!("Invalid command");
-                        break;
+                        io::stdout().flush().unwrap();
+                        thread::sleep(Duration::from_millis(50));
                     }
                 }
-            }
+
+                Some(StopWatch::Stop) => {
+                    println!("StopWatch stopped");
+                }
+
+                Some(StopWatch::Lap) => {
+                    println!("Lap time");
+                }
+
+                Some(StopWatch::Exit) => {
+                    println!("Exiting StopWatch");
+                    break;
+                }
+
+                None => {
+                    println!("Invalid command");
+                }
+            },
 
             Err(e) => {
                 todo!("Failed to read line: {}", e);
