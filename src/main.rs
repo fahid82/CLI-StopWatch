@@ -42,12 +42,14 @@ fn main() {
                         loop {
                             let elapsed = start_time.elapsed();
 
-                            println!(
+                            print!(
                                 "\rElapsed: {:02}:{:02}.{:03}",
                                 elapsed.as_secs() / 60,
                                 elapsed.as_secs() % 60,
                                 elapsed.subsec_millis()
                             );
+
+                            io::stdout().flush().unwrap();
                             thread::sleep(Duration::from_millis(50));
                         }
                     }
